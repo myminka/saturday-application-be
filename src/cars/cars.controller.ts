@@ -12,37 +12,41 @@ class CarsController implements Controller {
     constructor(repository: CarsRepository) {
         this._repository = repository
 
-        this.intializeRoutes();
+        this.initRoutes();
     }
 
-    public intializeRoutes() {
+    public async init(): Promise<void> {
+        await this._repository.connect();
+    }
+
+    initRoutes() {
         this.router.get(this.path, this.get_all);
         this.router.get(`${this.path}/:id`, this.get);
         this.router.post(this.path, this.post);
         this.router.delete(`${this.path}/:id`, this.delete);
     }
 
-    get_all = (request: Request, response: Response) => {
-        const cars = this._repository.getAll();
+    get_all = async (request: Request, response: Response) => {
+        const cars = await this._repository.getAll();
         return response.status(200).json(cars);
     }
 
-    get = (request: Request, response: Response) => {
-        const id: number = Number(request.params['id'])
-        const car = this._repository.get(id);
+    get = async (request: Request, response: Response) => {
+        const id: string = String(request.params['id'])
+        const car = await this._repository.get(id);
         return response.status(200).json(car);
     }
 
-    post = (request: Request, response: Response) => {
+    post = async (request: Request, response: Response) => {
         const car: Car = request.body;
-        this._repository.post(car)
+        await this._repository.post(car)
         return response.status(201).json(car);
     }
 
-    delete = (request: Request, response: Response) => {
-        const id: number = Number(request.params['id'])
-        this._repository.delete(id);
-        return response.status(201);
+    delete = async (request: Request, response: Response) => {
+        const id: string = String(request.params['id'])
+        await this._repository.delete(id);
+        return response.status(201).json();
     }
 }
 

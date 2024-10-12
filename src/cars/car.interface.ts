@@ -1,5 +1,7 @@
+import { ObjectId } from "mongodb";
+
 interface Car {
-    id: number;
+    _id: ObjectId;
     brand: string;
     model: string;
     year: number;

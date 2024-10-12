@@ -1,30 +1,52 @@
 import Car from './car.interface';
 
+import { MongoClient, Collection, ObjectId } from 'mongodb';
+
 class CarsRepository {
-    private _id: number = 0;
-    private _cars: Car[] = [];
+    private _client: MongoClient = new MongoClient('mongodb://localhost:27017');
+    private _collection: Collection<Car> | undefined;
 
-    getAll(): Car[] {
-        return this._cars;
-    }
-
-    get(id: number): Car {
-        const car = this._cars.find(c => c.id === id);
-        if (!car) return { id: -1, brand: '', model: '', year: -1 }
-        return car;
-    }
-
-    post(car: Car): void {
-        car.id = this._id;
-        this._id++;
-        this._cars.push(car);
-    }
-
-    delete(id: number): void {
-        const index = this._cars.findIndex(c => c.id === id);
-        if (index > -1) {
-            this._cars.splice(index, 1);
+    async connect() {
+        try {
+            await this._client.connect();
+            console.log("Connected to MongoDB successfully!");
+            this._collection = this._client.db('saturday_application_db').collection('cars');
+        } catch (err) {
+            console.error("Failed to connect to MongoDB", err);
         }
+    }
+    
+    async close() {
+        await this._client.close();
+        console.log("MongoDB connection closed.");
+    }
+
+    async getAll(): Promise<Car[]> {
+        if (!this._collection) throw new Error("Collection is not initialized");
+
+        return await this._collection.find({}).toArray();
+    }
+
+    async get(id: string): Promise<Car> {
+        if (!this._collection) throw new Error("Collection is not initialized");
+
+        const car = await this._collection.findOne({ _id: new ObjectId(id) });
+        
+        if (!car) return { _id: new ObjectId(-1), brand: '', model: '', year: -1 }
+
+        return car
+    }
+
+    async post(car: Car): Promise<void> {
+        if (!this._collection) throw new Error("Collection is not initialized");
+
+        await this._collection.insertOne(car);
+    }
+
+    async delete(id: string): Promise<void> {
+        if (!this._collection) throw new Error("Collection is not initialized");
+
+        await this._collection.deleteOne({ _id: new ObjectId(id) });
     }
 }
 

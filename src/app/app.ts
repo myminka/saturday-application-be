@@ -20,8 +20,9 @@ class App {
   }
  
   private initializeControllers(controllers: Controller[]) {
-    controllers.forEach((controller) => {
+    controllers.forEach(async (controller) => {
       this.app.use('/', controller.router);
+      await controller.init();
     });
   }
 
