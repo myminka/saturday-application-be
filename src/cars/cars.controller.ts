@@ -27,26 +27,52 @@ class CarsController implements Controller {
     }
 
     get_all = async (request: Request, response: Response) => {
-        const cars = await this._repository.getAll();
-        return response.status(200).json(cars);
+        try {
+            const cars = await this._repository.getAll();
+            return response.status(200).json(cars);
+        } catch (error) {
+            response.status(500).json({ error: 'Failed to get all' });
+        }
     }
 
     get = async (request: Request, response: Response) => {
-        const id: string = String(request.params['id'])
-        const car = await this._repository.get(id);
-        return response.status(200).json(car);
+        try {
+            const id: string = String(request.params['id'])
+            const car = await this._repository.get(id);
+
+            if (!car) {
+                return response.status(404).json('Failed to find & get');
+            }
+
+            return response.status(200).json(car);
+        } catch (error) {
+            response.status(500).json({ error: 'Failed to get' });
+        }
     }
 
     post = async (request: Request, response: Response) => {
-        const car: Car = request.body;
-        await this._repository.post(car)
-        return response.status(201).json(car);
+        try {
+            const car: Car = request.body;
+            await this._repository.post(car)
+            return response.status(201).json(car);
+        } catch (error) {
+            return response.status(500).json({ error: 'Failed to post' });
+        }
     }
 
     delete = async (request: Request, response: Response) => {
-        const id: string = String(request.params['id'])
-        await this._repository.delete(id);
-        return response.status(201).json();
+        try {
+            const id: string = String(request.params['id'])
+            const deleted = await this._repository.delete(id);
+
+            if (deleted) {
+                return response.status(200).json();
+            }
+
+            return response.status(404).json('Failed to find & delete');
+        } catch (error) {
+            response.status(500).json({ error: 'Failed to delete' });
+        }
     }
 }
 

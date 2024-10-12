@@ -9,16 +9,16 @@ class CarsRepository {
     async connect() {
         try {
             await this._client.connect();
-            console.log("Connected to MongoDB successfully!");
+            console.log("Connected to MongoDB successfully.");
             this._collection = this._client.db('saturday_application_db').collection('cars');
-        } catch (err) {
-            console.error("Failed to connect to MongoDB", err);
+        } catch (error) {
+            console.error("Failed to connect to MongoDB.", error);
         }
     }
     
     async close() {
         await this._client.close();
-        console.log("MongoDB connection closed.");
+        console.log("Disconnected from MongoDB successfully.");
     }
 
     async getAll(): Promise<Car[]> {
@@ -27,14 +27,10 @@ class CarsRepository {
         return await this._collection.find({}).toArray();
     }
 
-    async get(id: string): Promise<Car> {
+    async get(id: string): Promise<Car | null> {
         if (!this._collection) throw new Error("Collection is not initialized");
 
-        const car = await this._collection.findOne({ _id: new ObjectId(id) });
-        
-        if (!car) return { _id: new ObjectId(-1), brand: '', model: '', year: -1 }
-
-        return car
+        return await this._collection.findOne({ _id: new ObjectId(id) });
     }
 
     async post(car: Car): Promise<void> {
@@ -43,10 +39,10 @@ class CarsRepository {
         await this._collection.insertOne(car);
     }
 
-    async delete(id: string): Promise<void> {
+    async delete(id: string): Promise<boolean> {
         if (!this._collection) throw new Error("Collection is not initialized");
 
-        await this._collection.deleteOne({ _id: new ObjectId(id) });
+        return (await this._collection.deleteOne({ _id: new ObjectId(id) })).deletedCount > 0;
     }
 }
 
